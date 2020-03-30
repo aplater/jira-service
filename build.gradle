@@ -28,13 +28,16 @@ repositories {
 ext {
     springBootVersion = '2.1.2.RELEASE'
     junitVersion = '5.6.0'
+    googleOAuthClientVersion = '1.30.6'
 }
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter"
-    compile "org.springframework.boot:spring-boot-starter-web"
-    compile "com.atlassian.jira:jira-rest-java-client-core:5.2.0"
-    compile "com.atlassian.fugue:fugue:2.6.1"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "com.atlassian.jira:jira-rest-java-client-core:5.2.0"
+    implementation "com.atlassian.fugue:fugue:2.6.1"
+    implementation "com.google.oauth-client:google-oauth-client:$googleOAuthClientVersion"
+
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 }
