@@ -1,5 +1,6 @@
 package com.ashkan.jira.auth;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -11,10 +12,15 @@ public class OAuthClient {
 	@Autowired
 	private JiraOAuthClient jiraOAuthClient;
 
+	@Getter
+	private String verificationCode;
+
+	@Getter
+	private String accessToken;
+
 	public Optional<Exception> authenticate() {
 		String requestToken;
-		String verificationCode;
-		String accessToken;
+
 		try {
 			requestToken = jiraOAuthClient.getAndAuthorizeTemporaryToken();
 			verificationCode = jiraOAuthClient.getVerificationCodeFromUser();
