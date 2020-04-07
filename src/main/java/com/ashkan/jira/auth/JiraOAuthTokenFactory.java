@@ -36,8 +36,7 @@ public class JiraOAuthTokenFactory {
 		JiraOAuthGetTemporaryToken oAuthGetTemporaryToken = new JiraOAuthGetTemporaryToken(requestTokenUrl);
 		oAuthGetTemporaryToken.consumerKey = consumerKey;
 		oAuthGetTemporaryToken.signer = getOAuthRsaSigner(privateKey);
-		oAuthGetTemporaryToken.transport = new ApacheHttpTransport();
-//		oAuthGetTemporaryToken.transport = new NetHttpTransport();
+		oAuthGetTemporaryToken.transport = new NetHttpTransport();
 		oAuthGetTemporaryToken.callback = "oob";
 		return oAuthGetTemporaryToken;
 	}
@@ -86,7 +85,6 @@ public class JiraOAuthTokenFactory {
 		JiraOAuthGetAccessToken accessToken = new JiraOAuthGetAccessToken(accessTokenUrl);
 		accessToken.consumerKey = consumerKey;
 		accessToken.signer = getOAuthRsaSigner(privateKey);
-//		accessToken.transport = new ApacheHttpTransport();
 		accessToken.transport = new NetHttpTransport();
 		accessToken.verifier = secret;
 		accessToken.temporaryToken = requestToken;
