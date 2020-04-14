@@ -1,4 +1,4 @@
-package com.ashkan.jira;
+package com.ashkan.jira.model;
 
 import lombok.Data;
 
