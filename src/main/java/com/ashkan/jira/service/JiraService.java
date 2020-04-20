@@ -9,6 +9,7 @@ import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpContent;
 import com.google.api.client.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -17,9 +18,14 @@ import java.util.Optional;
 
 @Component
 public class JiraService {
+	private static final String SEARCH_URI = "/search";
+	private static final String ISSUE_URI = "/issue/";
 
 	private OAuthClient oAuthClient;
 	private JiraClient jiraClient;
+
+	@Value("${jira.base}")
+	private String jiraBaseUrl;
 
 	@Autowired
 	public JiraService(OAuthClient oAuthClient, JiraClient jiraClient) {
@@ -31,8 +37,8 @@ public class JiraService {
 	public void searchWithJql() {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
-			// TODO: read base url from settings and add the search endpoint to it. no need for user input (maybe except jql?)
-			String requestUrl = jiraClient.getRequestUrlFromUser();
+			String requestUrl = jiraBaseUrl + SEARCH_URI;
+			// TODO: can we have JQL as user input?!
 			// TODO: JQL can be a separate object and configurable
 			JiraQuery jiraQuery = new JiraQuery();
 			jiraQuery.setJql("project = Office365Refresh AND status = \"In Progress\"");
@@ -54,8 +60,8 @@ public class JiraService {
 	public void getDetailsForTicket() {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
-			// TODO: only user input should be ticket name
-			String requestUrl = jiraClient.getRequestUrlFromUser();
+			String issueName = jiraClient.getIssueNameFromUser();
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName;
 			jiraClient.sendGetRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
 		}
 	}

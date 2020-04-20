@@ -51,11 +51,21 @@ public class JiraClient {
 	}
 
 	/**
-	 * Reads teh request URL from user input
+	 * Reads the request URL from user input
 	 * @return request URL
 	 */
 	public String getRequestUrlFromUser() {
 		System.out.println("Please enter the request URL:");
+		Scanner scanner = new Scanner(System.in);
+		return scanner.nextLine();
+	}
+
+	/**
+	 * Reads the issue name from user input
+	 * @return request URL
+	 */
+	public String getIssueNameFromUser() {
+		System.out.println("Please enter the name of the Jira issue:");
 		Scanner scanner = new Scanner(System.in);
 		return scanner.nextLine();
 	}
