@@ -73,9 +73,9 @@ public class JiraClient {
 	/**
 	 * Authenticates to JIRA with given OAuthParameters and makes a GET request to url
 	 *
-	 * @param parameters
-	 * @param jiraUrl
-	 * @return
+	 * @param parameters authentication parameters to send along with our request
+	 * @param jiraUrl the URL to send the GET request
+	 * @return response of GET request
 	 * @throws IOException
 	 */
 	private static HttpResponse getResponseFromUrl(OAuthParameters parameters, GenericUrl jiraUrl) throws IOException {
@@ -87,9 +87,10 @@ public class JiraClient {
 	/**
 	 * Authenticates to JIRA with given OAuthParameters and makes a POST request to url
 	 *
-	 * @param parameters
-	 * @param jiraUrl
-	 * @return
+	 * @param parameters authentication parameters to send along with our request
+	 * @param jiraUrl the URL to send the POST request
+	 * @param httpContent content (body) of the post request
+	 * @return response of POST request
 	 * @throws IOException
 	 */
 	private static HttpResponse postResponseToUrl(OAuthParameters parameters, GenericUrl jiraUrl, HttpContent httpContent) throws IOException {

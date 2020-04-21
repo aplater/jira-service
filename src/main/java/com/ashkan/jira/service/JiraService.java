@@ -34,6 +34,10 @@ public class JiraService {
 	}
 
 	// TODO: reconsider return types
+
+	/**
+	 * Searches Jira with its hard-coded JQL (Current tickets in progress for our project)
+	 */
 	public void searchWithJql() {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
@@ -57,6 +61,9 @@ public class JiraService {
 		}
 	}
 
+	/**
+	 * Reads a ticket name from user input, gets the details for that and prints it on console.
+	 */
 	public void getDetailsForTicket() {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
