@@ -11,3 +11,12 @@ There are two main clients:
 2- `JiraClient`: this is the class that I use to send my HTTP requests to Jira API.
 
 `ClientMain` is where I interact with this two clients to authenticate first and then send my request to Jira API.
+
+# Running The App
+This application is authenticated with our Jira Cloud instance.In order to do that I did generate an RSA public/private 
+key pair and then created an application link in Jira using that key (more on this can be found [here](https://developer.atlassian.com/cloud/jira/platform/jira-rest-api-oauth-authentication/)).
+ In order to run this application you need to define the following environment variables: 
+`JIRA_URL`, `JIRA_HOME`, and `PRIVATE_KEY`.  
+Once you run the app, it gives you a link that you need to click on. This brings up a web-page where you should click on
+"allow" to get a verification code. Copy that verification code and paste it into command-line and press enter. Now your
+app and its session is authenticated and you can proceed with using Jira's API.
