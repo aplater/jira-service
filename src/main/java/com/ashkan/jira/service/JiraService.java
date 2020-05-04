@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpContent;
 import com.google.api.client.json.Json;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -20,12 +21,16 @@ import java.util.Optional;
 public class JiraService {
 	private static final String SEARCH_URI = "/search";
 	private static final String ISSUE_URI = "/issue/";
+	private static final String AGILE_URI = "rest/agile/1.0/sprint/";
 
-	private OAuthClient oAuthClient;
-	private JiraClient jiraClient;
+	private final OAuthClient oAuthClient;
+	private final JiraClient jiraClient;
 
 	@Value("${jira.base}")
 	private String jiraBaseUrl;
+
+	@Value("${jira.home}")
+	private String jiraHome;
 
 	@Autowired
 	public JiraService(OAuthClient oAuthClient, JiraClient jiraClient) {
@@ -59,6 +64,27 @@ public class JiraService {
 			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
 			jiraClient.sendPostRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
 		}
+	}
+
+	public void getSprintDetails(Long sprintId) {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraHome + AGILE_URI + sprintId.toString();
+			jiraClient.sendGetRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+		}
+	}
+
+	public JSONObject getIssuesOfSprint(Long sprintId) {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraHome + AGILE_URI + sprintId.toString() +
+					 "/issue?jql=project = OREF&fields=summary,issuetype,sprint,closedSprints,status,customfield_10200,created&expand=changelog";
+			Optional<JSONObject> optionalResponse = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+			if (optionalResponse.isPresent()) {
+				return optionalResponse.get();
+			}
+		}
+		return new JSONObject();
 	}
 
 	/**

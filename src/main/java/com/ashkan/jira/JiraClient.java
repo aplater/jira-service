@@ -38,6 +38,17 @@ public class JiraClient {
 		}
 	}
 
+	public Optional<JSONObject> sendGetRequestAndReturnResponse(String tempToken, String verificationCode, String url) {
+		try {
+			OAuthParameters oAuthParameters = jiraOAuthClient.getParameters(tempToken, verificationCode);
+			HttpResponse response = getResponseFromUrl(oAuthParameters, new GenericUrl(url));
+			return getResponseAsJson(response);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return Optional.empty();
+		}
+	}
+
 	public Optional<Exception> sendPostRequest(String tempToken, String verificationCode, String url, HttpContent httpContent) {
 		try {
 			OAuthParameters oAuthParameters = jiraOAuthClient.getParameters(tempToken, verificationCode);
@@ -115,6 +126,28 @@ public class JiraClient {
 			System.out.println(jsonObj.toString(2));
 		} catch (Exception e) {
 			System.out.println(result);
+		}
+	}
+
+	/**
+	 * Returns response content as JSON
+	 *
+	 * @param response response of our HTTP request
+	 * @return response content as a JSON object
+	 * @throws IOException
+	 */
+	private Optional<JSONObject> getResponseAsJson(HttpResponse response) throws IOException {
+		Scanner s = new Scanner(response.getContent()).useDelimiter("\\A");
+		String result = s.hasNext() ? s.next() : "";
+
+		try {
+			JSONObject jsonObj = new JSONObject(result);
+			// TODO: remove this:
+			System.out.println(jsonObj.toString(2));
+			return Optional.of(jsonObj);
+		} catch (Exception e) {
+			System.out.println(result);
+			return Optional.empty();
 		}
 	}
 
