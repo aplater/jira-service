@@ -10,7 +10,6 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +84,6 @@ public class SheetsUpdater {
 
 		AppendValuesResponse response = request.execute();
 
-		// TODO: Change code below to process the `response` object:
 		System.out.println(response);
 		
 		return true;
