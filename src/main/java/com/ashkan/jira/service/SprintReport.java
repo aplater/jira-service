@@ -1,6 +1,7 @@
 package com.ashkan.jira.service;
 
-import com.ashkan.jira.Sprint;
+import com.ashkan.jira.model.Sprint;
+import com.ashkan.jira.util.JiraTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.Duration;
+import java.time.Instant;
 
 @Component
 public class SprintReport {
@@ -59,17 +62,27 @@ public class SprintReport {
 			if (!retrievedSprint.isFutureSprint() && retrievedSprint.getId().equals(sprintId)) {
 				return retrievedSprint;
 			} else {
-				return getLatestClosedSprint(jsonIssue);
+				return getLatestClosedSprint(jsonIssue, sprintId);
 			}
 		} catch (Exception exc) {
 			// Sprint field is null since sprint is completed, get "last closed sprint":
-			return getLatestClosedSprint(jsonIssue);
+			return getLatestClosedSprint(jsonIssue, sprintId);
 		}
 	}
 
-	private Sprint getLatestClosedSprint(JSONObject jsonIssue) {
+	private Sprint getLatestClosedSprint(JSONObject jsonIssue, Long sprintId) {
+		JSONObject jsonSprint = new JSONObject();
 		JSONArray closedSprints = jsonIssue.getJSONObject("fields").getJSONArray("closedSprints");
-		JSONObject jsonSprint = (JSONObject) closedSprints.get(closedSprints.length() - 1);
+		for (int i = closedSprints.length() - 1; i >= 0; i--) {
+			jsonSprint = (JSONObject) closedSprints.get(i);
+			try {
+				if (jsonSprint.getLong("id") == sprintId) {
+					return new Sprint(jsonSprint);
+				}
+			} catch (Exception exp) {
+				System.out.println("jsonSprint is: " + jsonSprint);
+			}
+		}
 		return new Sprint(jsonSprint);
 	}
 
@@ -90,14 +103,21 @@ public class SprintReport {
 		JSONArray changelog = issue.getJSONObject("changelog").getJSONArray("histories");
 		for (Object log : changelog) {
 			JSONArray items = ((JSONObject)log).getJSONArray("items");
-			String logCreatedDate = ((JSONObject)log).getString("created");
+			Instant logCreatedDate = JiraTime.getInstant(((JSONObject)log).getString("created"));
 			for (Object item : items) {
 				JSONObject jsonItem = (JSONObject) item;
-				if (jsonItem.getString("field").equals("resolution") &&
-					(jsonItem.getString("toString").contains("Done") || jsonItem.getString("toString").contains("Code Complete")) &&
-					logCreatedDate.compareTo(currentSprint.getStart()) > 0 &&
-					logCreatedDate.compareTo(currentSprint.getEnd()) < 0) {
-					return true;
+				try {
+					if (jsonItem.getString("field").equals("resolution") &&
+							(jsonItem.getString("toString").contains("Done") ||
+									jsonItem.getString("toString").contains("Code Complete") ||
+									jsonItem.getString("toString").contains("Fixed")) && // TODO: include all possible resolutions
+							logCreatedDate.isAfter(currentSprint.getStart()) &&
+							logCreatedDate.isBefore(currentSprint.getEnd().plus(Duration.ofDays(2).plusHours(12))) // for the tickets we close over the weekend of 2nd week
+					) {
+						return true;
+					}
+				} catch (Exception excp) {
+					System.out.println("Failed jsonItem is: " + jsonItem.toString());
 				}
 			}
 		}
@@ -106,18 +126,18 @@ public class SprintReport {
 
 	public boolean isIssueInjected(JSONObject jsonIssue, Sprint currentSprint) {
 		JSONArray changelog = jsonIssue.getJSONObject("changelog").getJSONArray("histories");
-		String issueCreated = jsonIssue.getJSONObject("fields").getString("created");
+		Instant issueCreated = JiraTime.getInstant(jsonIssue.getJSONObject("fields").getString("created"));
 		for (Object log : changelog) {
 			JSONArray items = ((JSONObject)log).getJSONArray("items");
-			String createdDate = ((JSONObject)log).getString("created");
+			Instant logCreatedDate = JiraTime.getInstant(((JSONObject)log).getString("created"));
 			for (Object item : items) {
 				JSONObject jsonItem = (JSONObject) item;
 				try {
 					if (issueCreated.compareTo(currentSprint.getStart()) > 0 ||
 						(jsonItem.getString("field").equals("Sprint") &&
 						jsonItem.getString("to").contains(currentSprint.getId().toString()) &&
-						createdDate.compareTo(currentSprint.getStart()) > 0 &&
-						createdDate.compareTo(currentSprint.getEnd()) < 0)) {
+						logCreatedDate.isAfter(currentSprint.getStart()) &&
+						logCreatedDate.isBefore(currentSprint.getEnd()))) {
 						return true;
 					}
 				} catch (JSONException e) {

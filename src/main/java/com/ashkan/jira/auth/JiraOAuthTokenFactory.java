@@ -1,7 +1,6 @@
 package com.ashkan.jira.auth;
 
 import com.google.api.client.auth.oauth.OAuthRsaSigner;
-import com.google.api.client.http.apache.ApacheHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
