@@ -14,12 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.ashkan.jira.sheets.HeaderDetector.HEADER_COMMITTED;
-import static com.ashkan.jira.sheets.HeaderDetector.HEADER_COMPLETED;
-import static com.ashkan.jira.sheets.HeaderDetector.HEADER_INCOMPLETE;
-import static com.ashkan.jira.sheets.HeaderDetector.HEADER_INFLATED;
-import static com.ashkan.jira.sheets.HeaderDetector.HEADER_INJECTED;
-import static com.ashkan.jira.sheets.HeaderDetector.HEADER_REMOVED;
+import static com.ashkan.jira.sheets.HeaderDetector.*;
 
 @RequiredArgsConstructor
 public class SheetsUpdater {
@@ -49,6 +44,7 @@ public class SheetsUpdater {
 				case HEADER_COMMITTED:  value = report.getCommittedStoryPoints(); break;
 				case HEADER_INJECTED:   value = report.getInjectedStoryPoints(); break;
 				case HEADER_INFLATED:   value = report.getInflatedStoryPoints(); break;
+				case HEADER_DEFLATED:   value = report.getDeflatedStoryPoints(); break;
 				case HEADER_REMOVED:    value = report.getRemoved(); break;
 				case HEADER_COMPLETED:  value = report.getCompletedStoryPoints(); break;
 				case HEADER_INCOMPLETE: value = report.getIncompleteStoryPoints(); break;
