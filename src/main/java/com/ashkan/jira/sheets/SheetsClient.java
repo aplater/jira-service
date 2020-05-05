@@ -1,6 +1,5 @@
 package com.ashkan.jira.sheets;
 
-import com.ashkan.jira.SheetsTest;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -42,7 +41,7 @@ public class SheetsClient {
 	 */
 	private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
 		// Load client secrets.
-		InputStream in = SheetsTest.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+		InputStream in = SheetsClient.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
 		if (in == null) {
 			throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
 		}

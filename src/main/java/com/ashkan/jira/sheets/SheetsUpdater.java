@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.ashkan.jira.sheets.HeaderDetector.HEADER_COMMITED;
+import static com.ashkan.jira.sheets.HeaderDetector.HEADER_COMMITTED;
 import static com.ashkan.jira.sheets.HeaderDetector.HEADER_COMPLETED;
 import static com.ashkan.jira.sheets.HeaderDetector.HEADER_INCOMPLETE;
 import static com.ashkan.jira.sheets.HeaderDetector.HEADER_INFLATED;
@@ -46,7 +46,7 @@ public class SheetsUpdater {
 
 			int value;
 			switch (type) {
-				case HEADER_COMMITED:   value = report.getCommittedStoryPoints(); break;
+				case HEADER_COMMITTED:  value = report.getCommittedStoryPoints(); break;
 				case HEADER_INJECTED:   value = report.getInjectedStoryPoints(); break;
 				case HEADER_INFLATED:   value = report.getInflatedStoryPoints(); break;
 				case HEADER_REMOVED:    value = report.getRemoved(); break;

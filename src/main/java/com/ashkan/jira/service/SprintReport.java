@@ -1,8 +1,7 @@
 package com.ashkan.jira.service;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 import com.ashkan.jira.model.Sprint;
 import com.ashkan.jira.util.JiraTime;
@@ -21,8 +20,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 @Component
-@Getter
-@Setter
+@Data
 public class SprintReport {
 	private static final String STORY_POINTS_FIELD_ID = "customfield_10200";
 	private int completed = 0;

@@ -16,13 +16,13 @@ import java.util.Set;
 
 @RequiredArgsConstructor
 public class HeaderDetector {
-	public static final String HEADER_COMMITED   = "Committed";
+	public static final String HEADER_COMMITTED  = "Committed";
 	public static final String HEADER_INJECTED   = "Injected";
 	public static final String HEADER_INFLATED   = "Inflated";
 	public static final String HEADER_REMOVED    = "Removed";
 	public static final String HEADER_COMPLETED  = "Completed";
 	public static final String HEADER_INCOMPLETE = "Incomplete";
-	public static final Set<String> ALL_HEADERS = new HashSet<>(Arrays.asList(HEADER_COMMITED, HEADER_INJECTED, HEADER_INFLATED, HEADER_REMOVED, HEADER_COMPLETED, HEADER_INCOMPLETE));
+	public static final Set<String> ALL_HEADERS = new HashSet<>(Arrays.asList(HEADER_COMMITTED, HEADER_INJECTED, HEADER_INFLATED, HEADER_REMOVED, HEADER_COMPLETED, HEADER_INCOMPLETE));
 
 	private final String spreadsheetId;
 
