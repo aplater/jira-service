@@ -37,6 +37,8 @@ public class SprintReport {
 	private int incomplete = 0;
 	private int incompleteStoryPoints = 0;
 
+	private Sprint currentSprint;
+
 	private final JiraService jiraService;
 
 	@Autowired
@@ -46,10 +48,14 @@ public class SprintReport {
 
 	public void generateSprintReport(Long sprintId) {
 		JSONObject sprintTicketsJson = jiraService.getIssuesOfSprint(sprintId);
+		boolean foundCurrentSprint = false;
 
 		for (Object issue : sprintTicketsJson.getJSONArray("issues")) {
 			JSONObject jsonIssue = (JSONObject) issue;
-			Sprint currentSprint = getCurrentSprint(jsonIssue, sprintId);
+			if (!foundCurrentSprint) {
+				currentSprint = getCurrentSprint(jsonIssue, sprintId);
+				foundCurrentSprint = true;
+			}
 			if (isIssueComplete(jsonIssue, currentSprint)) {
 				completed++;
 				completedStoryPoints += getStoryPoints(jsonIssue);
