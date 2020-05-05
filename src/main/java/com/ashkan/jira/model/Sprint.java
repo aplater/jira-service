@@ -4,7 +4,6 @@ import com.ashkan.jira.util.JiraTime;
 import lombok.Getter;
 import org.json.JSONObject;
 
-import java.time.Duration;
 import java.time.Instant;
 
 @Getter
@@ -20,8 +19,8 @@ public class Sprint {
 		this.name = jsonSprint.getString("name");
 		this.state = jsonSprint.getString("state");
 		if (!this.state.equals("future")) {
-			this.start = JiraTime.getInstant(jsonSprint.getString("startDate")).minus(Duration.ofHours(3)); // convert it from GMT to EST
-			this.end = JiraTime.getInstant(jsonSprint.getString("endDate")).minus(Duration.ofHours(3)); // convert it from GMT to EST
+			this.start = JiraTime.getInstant(jsonSprint.getString("startDate"));
+			this.end = JiraTime.getInstant(jsonSprint.getString("endDate"));
 		}
 	}
 
