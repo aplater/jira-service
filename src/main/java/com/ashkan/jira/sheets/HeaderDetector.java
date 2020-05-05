@@ -16,22 +16,25 @@ import java.util.Set;
 
 @RequiredArgsConstructor
 public class HeaderDetector {
-	public static final String HEADER_COMMITTED  = "Committed";
-	public static final String HEADER_INJECTED   = "Injected";
-	public static final String HEADER_INFLATED   = "Inflated";
-	public static final String HEADER_DEFLATED   = "Deflated";
-	public static final String HEADER_REMOVED    = "Removed";
-	public static final String HEADER_COMPLETED  = "Completed";
+	public static final String HEADER_SPRINT_NAME = "Sprint";
+	public static final String HEADER_START_DATE = "Sprint Start Date";
+	public static final String HEADER_END_DATE = "Sprint End Date";
+	public static final String HEADER_COMMITTED = "Committed";
+	public static final String HEADER_INJECTED = "Injected";
+	public static final String HEADER_INFLATED = "Inflated";
+	public static final String HEADER_DEFLATED = "Deflated";
+	public static final String HEADER_REMOVED = "Removed";
+	public static final String HEADER_COMPLETED = "Completed";
 	public static final String HEADER_INCOMPLETE = "Incomplete";
-	public static final Set<String> ALL_HEADERS = new HashSet<>(Arrays.asList(HEADER_COMMITTED, HEADER_INJECTED, HEADER_INFLATED, HEADER_DEFLATED, HEADER_REMOVED, HEADER_COMPLETED, HEADER_INCOMPLETE));
+	public static final Set<String> ALL_HEADERS = new HashSet<>(Arrays.asList(HEADER_COMMITTED, HEADER_INJECTED,
+			HEADER_INFLATED, HEADER_DEFLATED, HEADER_REMOVED, HEADER_COMPLETED, HEADER_INCOMPLETE, HEADER_SPRINT_NAME,
+			HEADER_START_DATE, HEADER_END_DATE));
 
 	private final String spreadsheetId;
 
 	public Map<Integer, String> getHeaders(String range) throws GeneralSecurityException, IOException {
 		Sheets service = SheetsClient.build();
-		ValueRange response = service.spreadsheets().values()
-				.get(spreadsheetId, range)
-				.execute();
+		ValueRange response = service.spreadsheets().values().get(spreadsheetId, range).execute();
 		List<List<Object>> values = response.getValues();
 
 		Map<Integer, String> columnNumbersToHeaders = new HashMap<>();
@@ -41,7 +44,7 @@ public class HeaderDetector {
 			System.out.println("Found headers");
 			List<Object> topRow = values.get(0);
 			int pos = 0;
-			for (Object cell: topRow) {
+			for (Object cell : topRow) {
 				String contents = ((String) cell).trim();
 				if (ALL_HEADERS.contains(contents)) {
 					columnNumbersToHeaders.put(pos, contents);

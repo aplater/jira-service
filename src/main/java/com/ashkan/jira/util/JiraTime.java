@@ -1,8 +1,11 @@
 package com.ashkan.jira.util;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.FormatStyle;
+import java.util.Locale;
 
 public class JiraTime {
 	public static Instant getInstant(String givenTime) {
@@ -16,5 +19,14 @@ public class JiraTime {
 			DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 			return Instant.from(format.parse(givenTime));
 		}
+	}
+
+	public static String getFormattedString(Instant givenTime) {
+		DateTimeFormatter formatter =
+				DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+						.withLocale(Locale.CANADA)
+						.withZone(ZoneId.systemDefault());
+
+		return formatter.format(givenTime);
 	}
 }

@@ -1,5 +1,6 @@
 package com.ashkan.jira.sheets;
 
+import com.ashkan.jira.util.JiraTime;
 import lombok.RequiredArgsConstructor;
 
 import com.ashkan.jira.service.SprintReport;
@@ -21,7 +22,7 @@ public class SheetsUpdater {
 
 	private static final String RANGE = "Sheet1!A:V";
 	private final String spreadsheetId;
-	
+
 	public boolean updateSprintReport(SprintReport report) throws GeneralSecurityException, IOException {
 		HeaderDetector detector = new HeaderDetector(spreadsheetId);
 		Map<Integer, String> columnIndicesToHeaders = detector.getHeaders(RANGE);
@@ -30,31 +31,56 @@ public class SheetsUpdater {
 
 		return appendRow(row, spreadsheetId, RANGE);
 	}
-	
+
 	List<Object> buildRow(SprintReport report, Map<Integer, String> columnIndicesToHeaders) {
 		// why a List<Object> you ask? BECAUSE THE GOOGLE SHEETS JAVA API IS BAD, THAT'S WHY
 		List<Object> row = new ArrayList<>();
 
-		for (Map.Entry<Integer, String> loc: columnIndicesToHeaders.entrySet()) {
+		for (Map.Entry<Integer, String> loc : columnIndicesToHeaders.entrySet()) {
 			Integer colIdx = loc.getKey();
 			String type = loc.getValue();
 
-			int value;
+			Object value;
 			switch (type) {
-				case HEADER_COMMITTED:  value = report.getCommittedStoryPoints(); break;
-				case HEADER_INJECTED:   value = report.getInjectedStoryPoints(); break;
-				case HEADER_INFLATED:   value = report.getInflatedStoryPoints(); break;
-				case HEADER_DEFLATED:   value = report.getDeflatedStoryPoints(); break;
-				case HEADER_REMOVED:    value = report.getRemoved(); break;
-				case HEADER_COMPLETED:  value = report.getCompletedStoryPoints(); break;
-				case HEADER_INCOMPLETE: value = report.getIncompleteStoryPoints(); break;
-				default: throw new RuntimeException("Unknown header: " + type);
+				case HEADER_SPRINT_NAME:
+					value = report.getCurrentSprint().getName();
+					break;
+				case HEADER_START_DATE:
+					value = JiraTime.getFormattedString(report.getCurrentSprint().getStart());
+					break;
+				case HEADER_END_DATE:
+					value = JiraTime.getFormattedString(report.getCurrentSprint().getEnd());
+					break;
+				case HEADER_COMMITTED:
+					value = report.getCommittedStoryPoints();
+					break;
+				case HEADER_INJECTED:
+					value = report.getInjectedStoryPoints();
+					break;
+				case HEADER_INFLATED:
+					value = report.getInflatedStoryPoints();
+					break;
+				case HEADER_DEFLATED:
+					value = report.getDeflatedStoryPoints();
+					break;
+				case HEADER_REMOVED:
+					value = report.getRemoved();
+					break;
+				case HEADER_COMPLETED:
+					value = report.getCompletedStoryPoints();
+					break;
+				case HEADER_INCOMPLETE:
+					value = report.getIncompleteStoryPoints();
+					break;
+				default:
+					throw new RuntimeException("Unknown header: " + type);
 			}
 
 			if (row.size() <= colIdx) {
 				padList(row, colIdx);
 			}
-			row.set(colIdx, Integer.toString(value));
+
+			row.set(colIdx, value);
 		}
 		return row;
 	}
@@ -65,13 +91,13 @@ public class SheetsUpdater {
 		}
 	}
 
-	public boolean appendRow(List<Object> row, String spreadsheetId, String range) throws GeneralSecurityException, IOException {
+	public boolean appendRow(List<Object> row, String spreadsheetId, String range) throws GeneralSecurityException,
+			IOException {
 		ValueRange requestBody = new ValueRange();
 		requestBody.setValues(Collections.singletonList(row));
 
-		Sheets.Spreadsheets.Values.Append request = SheetsClient.build().spreadsheets()
-				.values()
-				.append(spreadsheetId, range, requestBody);
+		Sheets.Spreadsheets.Values.Append request = SheetsClient.build().spreadsheets().values().append(spreadsheetId,
+				range, requestBody);
 
 		// How the input data should be interpreted.
 		request.setValueInputOption("USER_ENTERED");  // vs. "RAW"
@@ -81,7 +107,7 @@ public class SheetsUpdater {
 		AppendValuesResponse response = request.execute();
 
 		System.out.println(response);
-		
+
 		return true;
 	}
 }
