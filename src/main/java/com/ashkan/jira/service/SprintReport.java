@@ -26,6 +26,7 @@ public class SprintReport {
 	private int injected = 0;
 	private int injectedStoryPoints = 0;
 	private int committed = 0;
+	private int committedStoryPoints = 0;
 	private int inflated = 0;
 	private int inflatedStoryPoints = 0;
 	private int deflated = 0;
@@ -63,6 +64,11 @@ public class SprintReport {
 				injected++;
 				injectedStoryPoints += getStoryPoints(jsonIssue);
 				System.out.println("Injected Ticket No:");
+				System.out.println(jsonIssue.getString("key"));
+			} else {
+				committed++;
+				committedStoryPoints += getStoryPoints(jsonIssue);
+				System.out.println("Committed Ticket No:");
 				System.out.println(jsonIssue.getString("key"));
 			}
 
@@ -236,6 +242,8 @@ public class SprintReport {
 		System.out.println("Incomplete story points: " + incompleteStoryPoints);
 		System.out.println("Injected stories: " + injected);
 		System.out.println("Injected story points: " + injectedStoryPoints);
+		System.out.println("Committed stories: " + committed);
+		System.out.println("Committed story points: " + committedStoryPoints);
 		System.out.println("Inflated stories: " + inflated);
 		System.out.println("Inflated story points: " + inflatedStoryPoints);
 		System.out.println("Deflated stories: " + deflated);
