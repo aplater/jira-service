@@ -23,6 +23,7 @@ public class SprintReport {
 	private int inflated = 0;
 	private int removed = 0;
 	private int incomplete = 0;
+	private int incompleteStoryPoints = 0;
 
 	private final JiraService jiraService;
 
@@ -42,7 +43,13 @@ public class SprintReport {
 				completedStoryPoints += getStoryPoints(jsonIssue);
 				System.out.println("Completed Ticket No:");
 				System.out.println(jsonIssue.getString("key"));
+			} else {
+				incomplete++;
+				incompleteStoryPoints += getStoryPoints(jsonIssue);
+				System.out.println("Incomplete Ticket No:");
+				System.out.println(jsonIssue.getString("key"));
 			}
+
 			if (isIssueInjected(jsonIssue, currentSprint)) {
 				injected++;
 				injectedStoryPoints += getStoryPoints(jsonIssue);
@@ -152,6 +159,8 @@ public class SprintReport {
 	private void printSprintReport() {
 		System.out.println("Completed issues: " + completed);
 		System.out.println("Completed story points: " + completedStoryPoints);
+		System.out.println("Incomplete issues: " + incomplete);
+		System.out.println("Incomplete story points: " + incompleteStoryPoints);
 		System.out.println("Injected stories: " + injected);
 		System.out.println("Injected story points: " + injectedStoryPoints);
 	}
