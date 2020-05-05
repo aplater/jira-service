@@ -1,5 +1,7 @@
 package com.ashkan.jira.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.ashkan.jira.model.Sprint;
 import com.ashkan.jira.util.JiraTime;
 import org.json.JSONArray;
@@ -12,17 +14,26 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 @Component
 public class SprintReport {
+	private static final String STORY_POINTS_FIELD_ID = "customfield_10200";
 	private int completed = 0;
 	private int completedStoryPoints = 0;
 	private int injected = 0;
 	private int injectedStoryPoints = 0;
 	private int committed = 0;
+	private int committedStoryPoints = 0;
 	private int inflated = 0;
+	private int inflatedStoryPoints = 0;
+	private int deflated = 0;
+	private int deflatedStoryPoints = 0;
 	private int removed = 0;
 	private int incomplete = 0;
+	private int incompleteStoryPoints = 0;
 
 	private final JiraService jiraService;
 
@@ -42,11 +53,35 @@ public class SprintReport {
 				completedStoryPoints += getStoryPoints(jsonIssue);
 				System.out.println("Completed Ticket No:");
 				System.out.println(jsonIssue.getString("key"));
+			} else {
+				incomplete++;
+				incompleteStoryPoints += getStoryPoints(jsonIssue);
+				System.out.println("Incomplete Ticket No:");
+				System.out.println(jsonIssue.getString("key"));
 			}
+
 			if (isIssueInjected(jsonIssue, currentSprint)) {
 				injected++;
 				injectedStoryPoints += getStoryPoints(jsonIssue);
 				System.out.println("Injected Ticket No:");
+				System.out.println(jsonIssue.getString("key"));
+			} else {
+				committed++;
+				committedStoryPoints += getStoryPoints(jsonIssue);
+				System.out.println("Committed Ticket No:");
+				System.out.println(jsonIssue.getString("key"));
+			}
+
+			int pointChange = getIssuePointChange(jsonIssue, currentSprint);
+			if (pointChange > 0) {
+				inflated++;
+				inflatedStoryPoints += pointChange;
+				System.out.println("Inflated Ticket No:");
+				System.out.println(jsonIssue.getString("key"));
+			} else if (pointChange < 0) {
+				deflated++;
+				deflatedStoryPoints += pointChange;
+				System.out.println("Deflated Ticket No:");
 				System.out.println(jsonIssue.getString("key"));
 			}
 		}
@@ -89,7 +124,7 @@ public class SprintReport {
 	private int getStoryPoints(JSONObject issue) {
 		int storyPoints = 0;
 		try {
-			storyPoints = issue.getJSONObject("fields").getInt("customfield_10200");
+			storyPoints = issue.getJSONObject("fields").getInt(STORY_POINTS_FIELD_ID);
 		} catch (JSONException e) {
 			// Ticket has no story points (field value is null)
 			StringWriter sw = new StringWriter();
@@ -149,10 +184,69 @@ public class SprintReport {
 		return false;
 	}
 
+	@RequiredArgsConstructor
+	private static class StoryPointChanges {
+		private final int points;
+		private final Instant timeAdded;
+	}
+
+	public int getIssuePointChange(JSONObject jsonIssue, Sprint currentSprint) {
+		JSONArray changelog = jsonIssue.getJSONObject("changelog").getJSONArray("histories");
+		int endPoints = getStoryPoints(jsonIssue);
+
+		SortedSet<StoryPointChanges> pointsLog = new TreeSet<>(Comparator.comparing(change -> change.timeAdded));
+
+		for (Object log : changelog) {
+			JSONObject jsonLog = (JSONObject) log;
+			JSONArray items = jsonLog.getJSONArray("items");
+			Instant changeTime = JiraTime.getInstant(jsonLog.getString("created"));
+			for (Object item : items) {
+				JSONObject jsonItem = (JSONObject) item;
+				try {
+					if (jsonItem.has("fieldId") && jsonItem.get("fieldId").equals(STORY_POINTS_FIELD_ID)) {
+						// there was a change in story points!
+						int points;
+						if (jsonItem.get("toString").equals("")) {
+							points = 0;
+						} else {
+							points = jsonItem.getInt("toString");
+						}
+						pointsLog.add(new StoryPointChanges(points, changeTime));
+					}
+				} catch (JSONException e) {
+					System.out.println("NO:");
+					System.out.println(jsonItem.toString());
+				}
+			}
+		}
+
+		Instant sprintStart = currentSprint.getStart();
+
+		// all changes that happened before the sprint started
+		SortedSet<StoryPointChanges> changesAfterStart = pointsLog.headSet(new StoryPointChanges(0, sprintStart));
+		if (changesAfterStart.isEmpty()) {
+			return 0;
+		}
+
+		// points on the latest change
+		// this tells us how many points the ticket had at the start of the sprint
+		int startPoints = changesAfterStart.last().points;
+
+		return endPoints - startPoints;
+	}
+
 	private void printSprintReport() {
 		System.out.println("Completed issues: " + completed);
 		System.out.println("Completed story points: " + completedStoryPoints);
+		System.out.println("Incomplete issues: " + incomplete);
+		System.out.println("Incomplete story points: " + incompleteStoryPoints);
 		System.out.println("Injected stories: " + injected);
 		System.out.println("Injected story points: " + injectedStoryPoints);
+		System.out.println("Committed stories: " + committed);
+		System.out.println("Committed story points: " + committedStoryPoints);
+		System.out.println("Inflated stories: " + inflated);
+		System.out.println("Inflated story points: " + inflatedStoryPoints);
+		System.out.println("Deflated stories: " + deflated);
+		System.out.println("Deflated story points: " + deflatedStoryPoints);
 	}
 }
