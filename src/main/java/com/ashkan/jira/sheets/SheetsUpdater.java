@@ -20,7 +20,7 @@ import static com.ashkan.jira.sheets.HeaderDetector.*;
 @RequiredArgsConstructor
 public class SheetsUpdater {
 
-	private static final String RANGE = "Sheet1!A:V";
+	private static final String RANGE = "OREF!A:M";
 	private final String spreadsheetId;
 
 	public boolean updateSprintReport(SprintReport report) throws GeneralSecurityException, IOException {

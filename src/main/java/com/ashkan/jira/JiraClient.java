@@ -143,7 +143,7 @@ public class JiraClient {
 		try {
 			JSONObject jsonObj = new JSONObject(result);
 			// TODO: remove this:
-			System.out.println(jsonObj.toString(2));
+//			System.out.println(jsonObj.toString(2));
 			return Optional.of(jsonObj);
 		} catch (Exception e) {
 			System.out.println(result);
