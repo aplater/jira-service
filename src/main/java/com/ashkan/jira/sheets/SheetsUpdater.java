@@ -46,12 +46,12 @@ public class SheetsUpdater {
 
 			int value;
 			switch (type) {
-				case HEADER_COMMITED:   value = report.getCommitted(); break;
-				case HEADER_INJECTED:   value = report.getInjected(); break;
-				case HEADER_INFLATED:   value = report.getInflated(); break;
+				case HEADER_COMMITED:   value = report.getCommittedStoryPoints(); break;
+				case HEADER_INJECTED:   value = report.getInjectedStoryPoints(); break;
+				case HEADER_INFLATED:   value = report.getInflatedStoryPoints(); break;
 				case HEADER_REMOVED:    value = report.getRemoved(); break;
 				case HEADER_COMPLETED:  value = report.getCompletedStoryPoints(); break;
-				case HEADER_INCOMPLETE: value = report.getIncomplete(); break;
+				case HEADER_INCOMPLETE: value = report.getIncompleteStoryPoints(); break;
 				default: throw new RuntimeException("Unknown header: " + type);
 			}
 
