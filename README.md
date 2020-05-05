@@ -20,3 +20,15 @@ key pair and then created an application link in Jira using that key (more on th
 Once you run the app, it gives you a link that you need to click on. This brings up a web-page where you should click on
 "allow" to get a verification code. Copy that verification code and paste it into command-line and press enter. Now your
 app and its session is authenticated and you can proceed with using Jira's API.
+
+# Google Sheets Integration
+I created a new "Cloud Platform project" [here](https://developers.google.com/sheets/api/quickstart/java). This generated
+a set of credentials specifically for this project; talk to Mustafa and he can give them to you. 
+
+The first time you run the application, it'll open in the browser and ask you to authenticate; click ok. 
+
+This will create an entry in the `/tokens` folder. If you need to re-authenticate or change the permissions required by
+the application, delete the tokens folder to re-auth next time the service starts.
+
+From there, create a spreadsheet with the columns "Committed, Injected, Inflated, Removed, Completed, Incomplete" (in any order, doesn't have to be continuous) and paste the sheet Id
+into `SheetsTest.java`. The sheets Id can be found in the URL; it'll look something like `17guP0zy95DkAGKhEpExeNUyjMNB_BoJnNIy3yeothMU`
