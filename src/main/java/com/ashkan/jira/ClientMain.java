@@ -53,6 +53,7 @@ public class ClientMain {
 
 	private void setProjectMapValues() {
 		projectToListOfSprintIds.put("OREF", Arrays.asList(907L, 921L, 922L, 923L, 924L, 925L));
+		projectToListOfSprintIds.put("OEXP", Arrays.asList(915L, 916L, 917L, 918L, 919L, 920L));
 	}
 
 }
