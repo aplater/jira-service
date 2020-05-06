@@ -5,7 +5,6 @@ import com.ashkan.jira.sheets.SheetsUpdater;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +43,7 @@ public class ClientMain {
 
 				final SheetsUpdater updater = new SheetsUpdater(spreadSheetId);
 				try {
-					updater.updateSprintReport(sprintReport);
+					updater.updateSprintReport(sprintReport, projectCode);
 				} catch (GeneralSecurityException | IOException e) {
 					e.printStackTrace();
 				}

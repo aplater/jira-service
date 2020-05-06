@@ -20,16 +20,17 @@ import static com.ashkan.jira.sheets.HeaderDetector.*;
 @RequiredArgsConstructor
 public class SheetsUpdater {
 
-	private static final String RANGE = "OREF!A:M";
+	private static String range = "!A:M"; // we will append project name (which is equal to sheet name)
 	private final String spreadsheetId;
 
-	public boolean updateSprintReport(SprintReport report) throws GeneralSecurityException, IOException {
+	public boolean updateSprintReport(SprintReport report, String projectCode) throws GeneralSecurityException, IOException {
+		String currentRange = projectCode + range;
 		HeaderDetector detector = new HeaderDetector(spreadsheetId);
-		Map<Integer, String> columnIndicesToHeaders = detector.getHeaders(RANGE);
+		Map<Integer, String> columnIndicesToHeaders = detector.getHeaders(currentRange);
 
 		List<Object> row = buildRow(report, columnIndicesToHeaders);
 
-		return appendRow(row, spreadsheetId, RANGE);
+		return appendRow(row, spreadsheetId, currentRange);
 	}
 
 	List<Object> buildRow(SprintReport report, Map<Integer, String> columnIndicesToHeaders) {
