@@ -37,6 +37,8 @@ public class SprintReport {
 	private int incomplete = 0;
 	private int incompleteStoryPoints = 0;
 
+	private Sprint currentSprint;
+
 	private final JiraService jiraService;
 
 	@Autowired
@@ -44,12 +46,17 @@ public class SprintReport {
 		this.jiraService = jiraService;
 	}
 
-	public void generateSprintReport(Long sprintId) {
-		JSONObject sprintTicketsJson = jiraService.getIssuesOfSprint(sprintId);
+	public void generateSprintReport(String projectCode, Long sprintId) {
+		resetMetrics();
+		JSONObject sprintTicketsJson = jiraService.getIssuesOfSprint(projectCode, sprintId);
+		boolean foundCurrentSprint = false;
 
 		for (Object issue : sprintTicketsJson.getJSONArray("issues")) {
 			JSONObject jsonIssue = (JSONObject) issue;
-			Sprint currentSprint = getCurrentSprint(jsonIssue, sprintId);
+			if (!foundCurrentSprint) {
+				currentSprint = getCurrentSprint(jsonIssue, sprintId);
+				foundCurrentSprint = true;
+			}
 			if (isIssueComplete(jsonIssue, currentSprint)) {
 				completed++;
 				completedStoryPoints += getStoryPoints(jsonIssue);
@@ -250,5 +257,21 @@ public class SprintReport {
 		System.out.println("Inflated story points: " + inflatedStoryPoints);
 		System.out.println("Deflated stories: " + deflated);
 		System.out.println("Deflated story points: " + deflatedStoryPoints);
+	}
+
+	private void resetMetrics() {
+		completed = 0;
+		completedStoryPoints = 0;
+		injected = 0;
+		injectedStoryPoints = 0;
+		committed = 0;
+		committedStoryPoints = 0;
+		inflated = 0;
+		inflatedStoryPoints = 0;
+		deflated = 0;
+		deflatedStoryPoints = 0;
+		removed = 0;
+		incomplete = 0;
+		incompleteStoryPoints = 0;
 	}
 }

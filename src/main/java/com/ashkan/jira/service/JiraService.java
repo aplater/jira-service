@@ -74,11 +74,11 @@ public class JiraService {
 		}
 	}
 
-	public JSONObject getIssuesOfSprint(Long sprintId) {
+	public JSONObject getIssuesOfSprint(String projectCode, Long sprintId) {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
 			String requestUrl = jiraHome + AGILE_URI + sprintId.toString() +
-					 "/issue?jql=project = OREF&fields=summary,issuetype,sprint,closedSprints,status,customfield_10200,created&expand=changelog";
+					 "/issue?jql=project = " + projectCode + "&fields=summary,issuetype,sprint,closedSprints,status,customfield_10200,created&expand=changelog";
 			Optional<JSONObject> optionalResponse = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
 			if (optionalResponse.isPresent()) {
 				return optionalResponse.get();

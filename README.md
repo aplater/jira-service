@@ -15,8 +15,12 @@ There are two main clients:
 # Running The App
 This application is authenticated with our Jira Cloud instance.In order to do that I did generate an RSA public/private 
 key pair and then created an application link in Jira using that key (more on this can be found [here](https://developer.atlassian.com/cloud/jira/platform/jira-rest-api-oauth-authentication/)).
- In order to run this application you need to define the following environment variables: 
-`JIRA_URL`, `JIRA_HOME`, and `PRIVATE_KEY`.  
+ In order to run this application you need to define the following environment variables:   
+`JIRA_HOME`: something like this: `https://venasolutions.atlassian.net/`  
+`JIRA_URL`: something like this: `https://venasolutions.atlassian.net/rest/api/3`  
+`PRIVATE_KEY`: The key you used to verify your app on your jira instance  
+`SPREADSHEET_ID`: Id of the Google sheet where you wanna insert Sprint report  
+  
 Once you run the app, it gives you a link that you need to click on. This brings up a web-page where you should click on
 "allow" to get a verification code. Copy that verification code and paste it into command-line and press enter. Now your
 app and its session is authenticated and you can proceed with using Jira's API.

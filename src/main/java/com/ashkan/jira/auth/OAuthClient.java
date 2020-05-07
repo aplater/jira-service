@@ -21,13 +21,15 @@ public class OAuthClient {
 	public Optional<Exception> authenticate() {
 		String requestToken;
 
-		try {
-			requestToken = jiraOAuthClient.getAndAuthorizeTemporaryToken();
-			verificationCode = jiraOAuthClient.getVerificationCodeFromUser();
-			accessToken = jiraOAuthClient.getAccessToken(requestToken, verificationCode);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return Optional.of(ex);
+		if (verificationCode == null) {
+			try {
+				requestToken = jiraOAuthClient.getAndAuthorizeTemporaryToken();
+				verificationCode = jiraOAuthClient.getVerificationCodeFromUser();
+				accessToken = jiraOAuthClient.getAccessToken(requestToken, verificationCode);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return Optional.of(ex);
+			}
 		}
 		return Optional.empty();
 	}
