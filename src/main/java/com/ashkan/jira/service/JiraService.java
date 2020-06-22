@@ -5,6 +5,9 @@ import com.ashkan.jira.auth.OAuthClient;
 import com.ashkan.jira.model.JiraQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpContent;
 import com.google.api.client.json.Json;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Component;
 public class JiraService {
 	private static final String SEARCH_URI = "/search";
 	private static final String ISSUE_URI = "/issue/";
+	private static final String EDIT_META = "/editmeta/";
 	private static final String AGILE_URI = "rest/agile/1.0/sprint/";
 	private static final String BOARD_URI = "rest/agile/1.0/board";
 	private static final String SEARCH_URI2 = "rest/api/2/search";
@@ -68,6 +72,71 @@ public class JiraService {
 			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
 			jiraClient.sendPostRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
 		}
+	}
+
+	public void getEditIssueMetadata() {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String issueName = jiraClient.getIssueNameFromUser();
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName + EDIT_META;
+			String body = createEditBody();
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			jiraClient.sendGetRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+		}
+	}
+
+	// for now, it assigns ticket to my profile!
+	// we can change it later to get profile id from input
+	public void assignUser() {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String issueName = jiraClient.getIssueNameFromUser();
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName;
+			String body = createAssignUserBody();
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
+		}
+	}
+
+	private String createAssignUserBody() {
+		JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
+		ObjectNode payload = jsonNodeFactory.objectNode();
+		ObjectNode fields = payload.putObject("fields");
+		ObjectNode assignee = fields.putObject("assignee");
+		assignee.put("id", "5b5b2389ac5ce12cab69305e"); // my profile id!
+		return payload.toString();
+	}
+
+	public void addComment() {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String issueName = jiraClient.getIssueNameFromUser();
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName;
+			String body = createEditBody();
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
+		}
+	}
+
+	private String createEditBody() {
+		JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
+		ObjectNode payload = jsonNodeFactory.objectNode();
+		ObjectNode update = payload.putObject("update");
+		ArrayNode comments = update.putArray("comment");
+		ObjectNode add = comments.addObject();
+		ObjectNode commentBody = add.putObject("add");
+		ObjectNode body = commentBody.putObject("body");
+		body.put("version", 1);
+		body.put("type", "doc");
+		ArrayNode contents = body.putArray("content");
+		ObjectNode content = contents.addObject();
+		content.put("type", "paragraph");
+		ArrayNode innerContents = content.putArray("content");
+		ObjectNode innerContent = innerContents.addObject();
+		innerContent.put("type", "text");
+		innerContent.put("text", "this is a test");
+
+		return payload.toString();
 	}
 
 	public void getSprintDetails(Long sprintId) {

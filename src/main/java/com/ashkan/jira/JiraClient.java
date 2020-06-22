@@ -72,6 +72,18 @@ public class JiraClient {
 		}
 	}
 
+	public Optional<Exception> sendPutRequest(String tempToken, String verificationCode, String url, HttpContent httpContent) {
+		try {
+			OAuthParameters oAuthParameters = jiraOAuthClient.getParameters(tempToken, verificationCode);
+			HttpResponse response = putResponseToUrl(oAuthParameters, new GenericUrl(url), httpContent);
+			parseResponse(response);
+			return Optional.empty();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return Optional.of(ex);
+		}
+	}
+
 	/**
 	 * Reads the request URL from user input
 	 *
@@ -120,6 +132,21 @@ public class JiraClient {
 	private static HttpResponse postResponseToUrl(OAuthParameters parameters, GenericUrl jiraUrl, HttpContent httpContent) throws IOException {
 		HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory(parameters);
 		HttpRequest request = requestFactory.buildPostRequest(jiraUrl, httpContent);
+		return request.execute();
+	}
+
+	/**
+	 * Authenticates to JIRA with given OAuthParameters and sends a PUT request to url
+	 *
+	 * @param parameters authentication parameters to send along with our request
+	 * @param jiraUrl the URL to send the PUT request
+	 * @param httpContent content (body) of the post request
+	 * @return response of POST request
+	 * @throws IOException
+	 */
+	private static HttpResponse putResponseToUrl(OAuthParameters parameters, GenericUrl jiraUrl, HttpContent httpContent) throws IOException {
+		HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory(parameters);
+		HttpRequest request = requestFactory.buildPutRequest(jiraUrl, httpContent);
 		return request.execute();
 	}
 
