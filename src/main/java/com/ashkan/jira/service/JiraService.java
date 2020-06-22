@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Scanner;
+
 @Component
 public class JiraService {
 	private static final String SEARCH_URI = "/search";
@@ -79,7 +81,7 @@ public class JiraService {
 		if (!authResult.isPresent()) {
 			String issueName = jiraClient.getIssueNameFromUser();
 			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName + EDIT_META;
-			String body = createEditBody();
+			String body = ""; // fix this if needed
 			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
 			jiraClient.sendGetRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
 		}
@@ -107,18 +109,34 @@ public class JiraService {
 		return payload.toString();
 	}
 
+	/**
+	 * - Reads the issue name and comment message from user input
+	 * - posts the given message as a comment on Jira issue
+	 * @return request URL
+	 */
 	public void addComment() {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
 			String issueName = jiraClient.getIssueNameFromUser();
 			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName;
-			String body = createEditBody();
+			String commentMessage = getCommentFromInput();
+			String body = createEditBody(commentMessage);
 			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
 			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
 		}
 	}
 
-	private String createEditBody() {
+	/**
+	 * Reads the issue name from user input
+	 * @return request URL
+	 */
+	public String getCommentFromInput() {
+		System.out.println("Please enter the comment you want to post on the ticket:");
+		Scanner scanner = new Scanner(System.in);
+		return scanner.nextLine();
+	}
+
+	private String createEditBody(String commentMessage) {
 		JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
 		ObjectNode payload = jsonNodeFactory.objectNode();
 		ObjectNode update = payload.putObject("update");
@@ -134,7 +152,7 @@ public class JiraService {
 		ArrayNode innerContents = content.putArray("content");
 		ObjectNode innerContent = innerContents.addObject();
 		innerContent.put("type", "text");
-		innerContent.put("text", "this is a test");
+		innerContent.put("text", commentMessage);
 
 		return payload.toString();
 	}
