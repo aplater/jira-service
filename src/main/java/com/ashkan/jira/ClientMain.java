@@ -33,7 +33,7 @@ public class ClientMain {
 	@PostConstruct
 	private void initialize() {
 //		generateAndPostAllSprintReports();
-		jiraService.addComment();
+		jiraService.authenticate();
 	}
 
 	private void generateAndPostAllSprintReports() {

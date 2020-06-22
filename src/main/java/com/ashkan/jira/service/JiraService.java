@@ -76,6 +76,14 @@ public class JiraService {
 		}
 	}
 
+	/**
+	 * authenticates with Jira so in the same session, we no longer need
+	 * to authenticate for subsequent requests.
+	 */
+	public void authenticate() {
+		oAuthClient.authenticate();
+	}
+
 	public void getEditIssueMetadata() {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
@@ -121,6 +129,22 @@ public class JiraService {
 			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName;
 			String commentMessage = getCommentFromInput();
 			String body = createEditBody(commentMessage);
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
+		}
+	}
+
+	/**
+	 * Given issue name and a message, it posts a new comment
+	 * on the given issue
+	 * @param issue: jira issue name (e.g. VDP-178)
+	 * @param comment: comment to be posted
+	 */
+	public void addComment(String issue, String comment) {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issue;
+			String body = createEditBody(comment);
 			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
 			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
 		}
