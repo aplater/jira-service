@@ -32,11 +32,7 @@ public class ClientMain {
 
 	@PostConstruct
 	private void initialize() {
-		//jiraService.getComponentValues("VDP");
-		//jiraService.getBoardIdAndSprintId("VDP", projectToListOfSprintIds);
 		generateAndPostAllSprintReports();
-//		//jiraService.getSprintDetailsForBoards();
-//		jiraService.getSprintDetailsForBoards(225);
 	}
 
 	private void generateAndPostAllSprintReports() {
@@ -62,11 +58,11 @@ public class ClientMain {
 	}
 
 	private void setProjectMapValues2() {
-		listOfComponentIds.put("DMS & Calcs Board 231", jiraService.getSprintDetailsForBoards(231L));
-		listOfComponentIds.put("BUX Board 227", jiraService.getSprintDetailsForBoards(227L));
-		listOfComponentIds.put("VQL & DE Board 236", jiraService.getSprintDetailsForBoards(236L));
-		listOfComponentIds.put("Sundae Board Board 235", jiraService.getSprintDetailsForBoards(235L));
-		listOfComponentIds.put("Office Experience 225", jiraService.getSprintDetailsForBoards(225L));
-		listOfComponentIds.put("Office Refresh 226", jiraService.getSprintDetailsForBoards(226L));
+		listOfComponentIds.put("DMS & Calcs", jiraService.getSprintIdsForGivenBoardId(231L));
+		listOfComponentIds.put("BUX", jiraService.getSprintIdsForGivenBoardId(227L));
+		listOfComponentIds.put("VQL & DE", jiraService.getSprintIdsForGivenBoardId(236L));
+		listOfComponentIds.put("Sundae", jiraService.getSprintIdsForGivenBoardId(235L));
+		listOfComponentIds.put("Office Experience", jiraService.getSprintIdsForGivenBoardId(225L));
+		listOfComponentIds.put("Office Refresh", jiraService.getSprintIdsForGivenBoardId(226L));
 	}
 }

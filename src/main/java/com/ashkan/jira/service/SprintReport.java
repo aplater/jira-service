@@ -244,14 +244,6 @@ public class SprintReport {
 		return endPoints - startPoints;
 	}
 
-	private String getSprintName(JSONObject issues) {
-		try {
-			name = issues.getJSONObject("fields").getJSONObject("sprint").getString("name");
-		} catch (JSONException e) {
-		}
-		return name;
-	}
-
 	private void printSprintReport() {
 		System.out.println("Completed issues: " + completed);
 		System.out.println("Completed story points: " + completedStoryPoints);
@@ -265,7 +257,6 @@ public class SprintReport {
 		System.out.println("Inflated story points: " + inflatedStoryPoints);
 		System.out.println("Deflated stories: " + deflated);
 		System.out.println("Deflated story points: " + deflatedStoryPoints);
-		System.out.println("SprintName " + name);
 	}
 
 	private void resetMetrics() {
