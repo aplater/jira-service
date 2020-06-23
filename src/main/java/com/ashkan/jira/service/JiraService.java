@@ -129,7 +129,7 @@ public class JiraService {
 		return new JSONArray();
 	}
 
-	public ArrayList<Long> getSprintDetailsForBoards(int boardId) {
+	public ArrayList<Long> getSprintDetailsForBoards(Long boardId) {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		Optional<JSONObject> response = null;
 		HashSet<Long> set = new HashSet<Long>();
@@ -143,7 +143,8 @@ public class JiraService {
 					JSONObject jsonObject = values2.getJSONObject(j);
 					String sprintId = jsonObject.get("id").toString();
 					String state = jsonObject.get("state").toString();
-					if(state.equals("closed")) {
+					Long originBoardId = Long.parseLong(jsonObject.get("originBoardId").toString());
+					if(state.equals("closed") && originBoardId.equals(boardId)) {
 						set.add(Long.parseLong(sprintId));
 					}
 				}
