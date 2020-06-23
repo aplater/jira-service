@@ -8,13 +8,13 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Scanner;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JiraClient {
@@ -49,6 +49,17 @@ public class JiraClient {
 		}
 	}
 
+	public Optional<JSONArray> sendGetRequestAndReturnResponseAsJsonArray(String tempToken, String verificationCode, String url) {
+		try {
+			OAuthParameters oAuthParameters = jiraOAuthClient.getParameters(tempToken, verificationCode);
+			HttpResponse response = getResponseFromUrl(oAuthParameters, new GenericUrl(url));
+			return getResponseAsJsonArray(response);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return Optional.empty();
+		}
+	}
+
 	public Optional<Exception> sendPostRequest(String tempToken, String verificationCode, String url, HttpContent httpContent) {
 		try {
 			OAuthParameters oAuthParameters = jiraOAuthClient.getParameters(tempToken, verificationCode);
@@ -63,6 +74,7 @@ public class JiraClient {
 
 	/**
 	 * Reads the request URL from user input
+	 *
 	 * @return request URL
 	 */
 	public String getRequestUrlFromUser() {
@@ -73,6 +85,7 @@ public class JiraClient {
 
 	/**
 	 * Reads the issue name from user input
+	 *
 	 * @return request URL
 	 */
 	public String getIssueNameFromUser() {
@@ -85,7 +98,7 @@ public class JiraClient {
 	 * Authenticates to JIRA with given OAuthParameters and makes a GET request to url
 	 *
 	 * @param parameters authentication parameters to send along with our request
-	 * @param jiraUrl the URL to send the GET request
+	 * @param jiraUrl    the URL to send the GET request
 	 * @return response of GET request
 	 * @throws IOException
 	 */
@@ -98,8 +111,8 @@ public class JiraClient {
 	/**
 	 * Authenticates to JIRA with given OAuthParameters and makes a POST request to url
 	 *
-	 * @param parameters authentication parameters to send along with our request
-	 * @param jiraUrl the URL to send the POST request
+	 * @param parameters  authentication parameters to send along with our request
+	 * @param jiraUrl     the URL to send the POST request
 	 * @param httpContent content (body) of the post request
 	 * @return response of POST request
 	 * @throws IOException
@@ -151,4 +164,17 @@ public class JiraClient {
 		}
 	}
 
+	private Optional<JSONArray> getResponseAsJsonArray(HttpResponse response) throws IOException {
+		Scanner s = new Scanner(response.getContent()).useDelimiter("\\A");
+		String result = s.hasNext() ? s.next() : "";
+
+		try {
+			JSONArray jsonArray = new JSONArray(result);
+
+			return Optional.of(jsonArray);
+		} catch (Exception e) {
+			System.out.println(result);
+			return Optional.empty();
+		}
+	}
 }

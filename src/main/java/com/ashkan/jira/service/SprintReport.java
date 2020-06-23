@@ -46,6 +46,15 @@ public class SprintReport {
 		this.jiraService = jiraService;
 	}
 
+	public void generateSprintReport2(String sprintId) {
+		resetMetrics();
+
+		JSONObject sprintTicketsJson2 = jiraService.getIssuesOfSprint(sprintId);
+		boolean foundCurrentSprint = false;
+
+	}
+
+
 	public void generateSprintReport(String projectCode, Long sprintId) {
 		resetMetrics();
 		JSONObject sprintTicketsJson = jiraService.getIssuesOfSprint(projectCode, sprintId);
@@ -274,4 +283,5 @@ public class SprintReport {
 		incomplete = 0;
 		incompleteStoryPoints = 0;
 	}
+
 }

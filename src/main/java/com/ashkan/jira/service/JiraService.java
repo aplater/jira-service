@@ -8,20 +8,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpContent;
 import com.google.api.client.json.Json;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
 
 @Component
 public class JiraService {
 	private static final String SEARCH_URI = "/search";
 	private static final String ISSUE_URI = "/issue/";
 	private static final String AGILE_URI = "rest/agile/1.0/sprint/";
+	private static final String BOARD_URI = "rest/agile/1.0/board";
 
 	private final OAuthClient oAuthClient;
 	private final JiraClient jiraClient;
@@ -78,7 +79,7 @@ public class JiraService {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
 			String requestUrl = jiraHome + AGILE_URI + sprintId.toString() +
-					 "/issue?jql=project = " + projectCode + "&fields=summary,issuetype,sprint,closedSprints,status,customfield_10200,created&expand=changelog";
+					"/issue?jql=project = " + projectCode + "&fields=summary,issuetype,sprint,closedSprints,status,customfield_10200,created&expand=changelog";
 			Optional<JSONObject> optionalResponse = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
 			if (optionalResponse.isPresent()) {
 				return optionalResponse.get();
@@ -98,4 +99,58 @@ public class JiraService {
 			jiraClient.sendGetRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
 		}
 	}
+
+	public JSONArray getComponentValues(String projectKey) {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		Optional<JSONArray> response;
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraBaseUrl + "/project/" + projectKey + "/components";
+			response = jiraClient.sendGetRequestAndReturnResponseAsJsonArray(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+			if (response.isPresent()) {
+				return response.get();
+			}
+		}
+		return new JSONArray();
+	}
+
+	public JSONObject getBoardIdAndSprintId(String projectkey) {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		Optional<JSONObject> response = null;
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraHome + BOARD_URI + "?projectKeyOrId=" + projectkey;
+			response = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+			if (response.isPresent()) {
+				JSONArray values = response.get().getJSONArray("values");
+				for (int i = 0; i < values.length(); i++) {
+					String id = values.getJSONObject(i).get("id").toString();
+					System.out.println("id:" + id);
+					String requestUrl2 = jiraHome + BOARD_URI + "/" + id + "/sprint";
+					System.out.println("url:" + requestUrl2);
+					Optional<JSONObject> response2 = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl2);
+					if (response2.isPresent()) {
+						JSONArray values2 = response2.get().getJSONArray("values");
+						for (int j = 0; j < values2.length(); j++) {
+							String id2 = values2.getJSONObject(j).get("id").toString();
+							System.out.println("id2: " + id2);
+						}
+					}
+				}
+				return response.get();
+			}
+		}
+		return null;
+	}
+
+	public JSONObject getIssuesOfSprint(String sprintId) {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraHome + AGILE_URI + sprintId;
+			Optional<JSONObject> optionalResponse = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+			if (optionalResponse.isPresent()) {
+				return optionalResponse.get();
+			}
+		}
+		return null;
+	}
 }
+
