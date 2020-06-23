@@ -13,13 +13,19 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SheetsClient {
 	private static final String APPLICATION_NAME = "Vena JIRA Connector";
@@ -48,9 +54,19 @@ public class SheetsClient {
 		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
 		// Build flow and trigger user authorization request.
+		File givenFile = new java.io.File(TOKENS_DIRECTORY_PATH);
+		Set<PosixFilePermission> permissions = new HashSet<>();
+		permissions.add(PosixFilePermission.OWNER_READ);
+		permissions.add(PosixFilePermission.OWNER_WRITE);
+		permissions.add(PosixFilePermission.OWNER_EXECUTE);
+		try {
+			Files.setPosixFilePermissions(Paths.get(givenFile.getAbsolutePath()), permissions);
+		} catch (Exception exp) {
+			System.out.println(exp);
+		}
 		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
 				HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-				.setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+				.setDataStoreFactory(new FileDataStoreFactory(givenFile))
 				.setAccessType("offline")
 				.build();
 		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();

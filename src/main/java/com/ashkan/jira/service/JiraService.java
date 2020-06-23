@@ -10,6 +10,7 @@ import com.google.api.client.http.HttpContent;
 import com.google.api.client.json.Json;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,6 +24,7 @@ public class JiraService {
 	private static final String ISSUE_URI = "/issue/";
 	private static final String AGILE_URI = "rest/agile/1.0/sprint/";
 	private static final String BOARD_URI = "rest/agile/1.0/board";
+	private static final String SEARCH_URI2 = "rest/api/2/search";
 
 	private final OAuthClient oAuthClient;
 	private final JiraClient jiraClient;
@@ -88,6 +90,20 @@ public class JiraService {
 		return new JSONObject();
 	}
 
+	public JSONObject getIssuesOfSprintWithoutProjectKey(Long sprintId) {
+
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraHome + SEARCH_URI2 + "?jql=Sprint=" + sprintId;
+			System.out.println(requestUrl);
+			Optional<JSONObject> optionalResponse = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+			if (optionalResponse.isPresent()) {
+				return optionalResponse.get();
+			}
+		}
+		return new JSONObject();
+	}
+
 	/**
 	 * Reads a ticket name from user input, gets the details for that and prints it on console.
 	 */
@@ -113,44 +129,101 @@ public class JiraService {
 		return new JSONArray();
 	}
 
-	public JSONObject getBoardIdAndSprintId(String projectkey) {
+	public ArrayList<Long> getSprintDetailsForBoards(int boardId) {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		Optional<JSONObject> response = null;
+		HashSet<Long> set = new HashSet<Long>();
 		if (!authResult.isPresent()) {
-			String requestUrl = jiraHome + BOARD_URI + "?projectKeyOrId=" + projectkey;
-			response = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
-			if (response.isPresent()) {
-				JSONArray values = response.get().getJSONArray("values");
-				for (int i = 0; i < values.length(); i++) {
-					String id = values.getJSONObject(i).get("id").toString();
-					System.out.println("id:" + id);
-					String requestUrl2 = jiraHome + BOARD_URI + "/" + id + "/sprint";
-					System.out.println("url:" + requestUrl2);
-					Optional<JSONObject> response2 = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl2);
-					if (response2.isPresent()) {
-						JSONArray values2 = response2.get().getJSONArray("values");
-						for (int j = 0; j < values2.length(); j++) {
-							String id2 = values2.getJSONObject(j).get("id").toString();
-							System.out.println("id2: " + id2);
-						}
+			String requestUrl = jiraHome + BOARD_URI + "/" + boardId + "/sprint";
+			System.out.println(requestUrl);
+			Optional<JSONObject> response2 = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+			if (response2.isPresent()) {
+				JSONArray values2 = response2.get().getJSONArray("values");
+				for (int j = 0; j < values2.length(); j++) {
+					JSONObject jsonObject = values2.getJSONObject(j);
+					String sprintId = jsonObject.get("id").toString();
+					String state = jsonObject.get("state").toString();
+					if(state.equals("closed")) {
+						set.add(Long.parseLong(sprintId));
 					}
 				}
-				return response.get();
-			}
-		}
-		return null;
-	}
-
-	public JSONObject getIssuesOfSprint(String sprintId) {
-		Optional<Exception> authResult = oAuthClient.authenticate();
-		if (!authResult.isPresent()) {
-			String requestUrl = jiraHome + AGILE_URI + sprintId;
-			Optional<JSONObject> optionalResponse = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
-			if (optionalResponse.isPresent()) {
-				return optionalResponse.get();
+				return new ArrayList<>(set);
 			}
 		}
 		return null;
 	}
 }
+
+//	public JSONObject getSprintDetailsForBoards(Map<String, List<Long>> map) {
+//
+//		ArrayList<int[]> boardIds = new ArrayList<int[]>();
+//		int boardid[] = {225, 226, 228, 240};
+//		boardIds.add(0, boardid);
+//
+//		Optional<Exception> authResult = oAuthClient.authenticate();
+//
+//		for (int i = 0; i < boardIds.size(); i++) {
+//
+//			String requestUrl2 = jiraHome + BOARD_URI + "/" + boardid + "/sprint";
+//			Optional<JSONObject> response = null;
+//			HashSet<Long> set = new HashSet<Long>();
+//			Optional<JSONObject> response2 = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl2);
+//			if (response2.isPresent()) {
+//				JSONArray values2 = response2.get().getJSONArray("values");
+//				for (int j = 0; j < values2.length(); j++) {
+//					String id2 = values2.getJSONObject(j).get("id").toString();
+//					set.add(Long.parseLong(id2));
+//				}
+//			}
+//			List<Long> list = new ArrayList<Long>(set);
+//			map.put("VDP", list);
+//			return response.get();
+//		}
+//		return null;
+//	}
+
+//	public JSONObject getBoardIdAndSprintId(String projectkey, Map<String, List<Long>> map) {
+//		Optional<Exception> authResult = oAuthClient.authenticate();
+//		Optional<JSONObject> response = null;
+//		HashSet<Long> set = new HashSet<Long>();
+//		if (!authResult.isPresent()) {
+//			String requestUrl = jiraHome + BOARD_URI + "?projectKeyOrId=" + projectkey;
+//			response = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+//			if (response.isPresent()) {
+//				JSONArray values = response.get().getJSONArray("values");
+//				for (int i = 0; i < values.length(); i++) {
+//					String id = values.getJSONObject(i).get("id").toString();
+//					System.out.println("id:" + id);
+//					String requestUrl2 = jiraHome + BOARD_URI + "/" + id + "/sprint";
+//					System.out.println("url:" + requestUrl2);
+//					Optional<JSONObject> response2 = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl2);
+//					if (response2.isPresent()) {
+//						JSONArray values2 = response2.get().getJSONArray("values");
+//						for (int j = 0; j < values2.length(); j++) {
+//							String id2 = values2.getJSONObject(j).get("id").toString();
+//							System.out.println("id2: " + id2);
+//							set.add(Long.parseLong(id2));
+//						}
+//					}
+//				}
+//				List<Long> list = new ArrayList<Long>(set);
+//				map.put("VDP", list);
+//				return response.get();
+//			}
+//		}
+//		return null;
+//	}
+//
+//		public JSONObject getIssuesOfSprint (Long sprintId){
+//			Optional<Exception> authResult = oAuthClient.authenticate();
+//			if (!authResult.isPresent()) {
+//				String requestUrl = jiraHome + AGILE_URI + sprintId;
+//				Optional<JSONObject> optionalResponse = jiraClient.sendGetRequestAndReturnResponse(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+//				if (optionalResponse.isPresent()) {
+//					return optionalResponse.get();
+//				}
+//			}
+//			return null;
+//		}
+//	}
 

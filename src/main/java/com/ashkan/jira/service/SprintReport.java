@@ -1,16 +1,7 @@
 package com.ashkan.jira.service;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import com.ashkan.jira.model.Sprint;
 import com.ashkan.jira.util.JiraTime;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Duration;
@@ -18,6 +9,13 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Data
@@ -36,6 +34,7 @@ public class SprintReport {
 	private int removed = 0;
 	private int incomplete = 0;
 	private int incompleteStoryPoints = 0;
+	private String name = null;
 
 	private Sprint currentSprint;
 
@@ -46,18 +45,10 @@ public class SprintReport {
 		this.jiraService = jiraService;
 	}
 
-	public void generateSprintReport2(String sprintId) {
-		resetMetrics();
-
-		JSONObject sprintTicketsJson2 = jiraService.getIssuesOfSprint(sprintId);
-		boolean foundCurrentSprint = false;
-
-	}
-
-
 	public void generateSprintReport(String projectCode, Long sprintId) {
 		resetMetrics();
-		JSONObject sprintTicketsJson = jiraService.getIssuesOfSprint(projectCode, sprintId);
+		JSONObject sprintTicketsJson = jiraService.getIssuesOfSprint("VDP", sprintId);
+		//JSONObject sprintTicketsJson = jiraService.getIssuesOfSprintWithoutProjectKey(sprintId);
 		boolean foundCurrentSprint = false;
 
 		for (Object issue : sprintTicketsJson.getJSONArray("issues")) {
@@ -155,8 +146,8 @@ public class SprintReport {
 //		return issue.getJSONObject("fields").getJSONObject("status").getString("name").equals("Done");
 		JSONArray changelog = issue.getJSONObject("changelog").getJSONArray("histories");
 		for (Object log : changelog) {
-			JSONArray items = ((JSONObject)log).getJSONArray("items");
-			Instant logCreatedDate = JiraTime.getInstant(((JSONObject)log).getString("created"));
+			JSONArray items = ((JSONObject) log).getJSONArray("items");
+			Instant logCreatedDate = JiraTime.getInstant(((JSONObject) log).getString("created"));
 			for (Object item : items) {
 				JSONObject jsonItem = (JSONObject) item;
 				try {
@@ -181,16 +172,16 @@ public class SprintReport {
 		JSONArray changelog = jsonIssue.getJSONObject("changelog").getJSONArray("histories");
 		Instant issueCreated = JiraTime.getInstant(jsonIssue.getJSONObject("fields").getString("created"));
 		for (Object log : changelog) {
-			JSONArray items = ((JSONObject)log).getJSONArray("items");
-			Instant logCreatedDate = JiraTime.getInstant(((JSONObject)log).getString("created"));
+			JSONArray items = ((JSONObject) log).getJSONArray("items");
+			Instant logCreatedDate = JiraTime.getInstant(((JSONObject) log).getString("created"));
 			for (Object item : items) {
 				JSONObject jsonItem = (JSONObject) item;
 				try {
 					if (issueCreated.compareTo(currentSprint.getStart()) > 0 ||
-						(jsonItem.getString("field").equals("Sprint") &&
-						jsonItem.getString("to").contains(currentSprint.getId().toString()) &&
-						logCreatedDate.isAfter(currentSprint.getStart()) &&
-						logCreatedDate.isBefore(currentSprint.getEnd()))) {
+							(jsonItem.getString("field").equals("Sprint") &&
+									jsonItem.getString("to").contains(currentSprint.getId().toString()) &&
+									logCreatedDate.isAfter(currentSprint.getStart()) &&
+									logCreatedDate.isBefore(currentSprint.getEnd()))) {
 						return true;
 					}
 				} catch (JSONException e) {
@@ -253,6 +244,14 @@ public class SprintReport {
 		return endPoints - startPoints;
 	}
 
+	private String getSprintName(JSONObject issues) {
+		try {
+			name = issues.getJSONObject("fields").getJSONObject("sprint").getString("name");
+		} catch (JSONException e) {
+		}
+		return name;
+	}
+
 	private void printSprintReport() {
 		System.out.println("Completed issues: " + completed);
 		System.out.println("Completed story points: " + completedStoryPoints);
@@ -266,6 +265,7 @@ public class SprintReport {
 		System.out.println("Inflated story points: " + inflatedStoryPoints);
 		System.out.println("Deflated stories: " + deflated);
 		System.out.println("Deflated story points: " + deflatedStoryPoints);
+		System.out.println("SprintName " + name);
 	}
 
 	private void resetMetrics() {
@@ -284,4 +284,8 @@ public class SprintReport {
 		incompleteStoryPoints = 0;
 	}
 
+	public void generateSprintReportNew(Long sprintId) {
+		resetMetrics();
+		JSONObject sprintTicketsJson = jiraService.getIssuesOfSprintWithoutProjectKey(sprintId);
+	}
 }

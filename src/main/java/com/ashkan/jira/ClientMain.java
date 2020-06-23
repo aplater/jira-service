@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClientMain {
 	private Map<String, List<Long>> projectToListOfSprintIds = new HashMap<>();
-	private Map<String, List<Long>> projectToListOfComponentNames = new HashMap<>();
+	private Map<String, List<Long>> listOfComponentIds =new HashMap<>();
 	private SprintReport sprintReport;
 	private JiraService jiraService;
 
@@ -32,14 +32,16 @@ public class ClientMain {
 
 	@PostConstruct
 	private void initialize() {
-//		generateAndPostAllSprintReports();
-////		jiraService.getComponentValues("VDP");
-		jiraService.getBoardIdAndSprintId("VDP");
+		//jiraService.getComponentValues("VDP");
+		//jiraService.getBoardIdAndSprintId("VDP", projectToListOfSprintIds);
+		generateAndPostAllSprintReports();
+//		//jiraService.getSprintDetailsForBoards();
+//		jiraService.getSprintDetailsForBoards(225);
 	}
 
 	private void generateAndPostAllSprintReports() {
-		setProjectMapValues();
-		for (Map.Entry<String, List<Long>> entry : projectToListOfSprintIds.entrySet()) {
+		setProjectMapValues2();
+		for (Map.Entry<String, List<Long>> entry : listOfComponentIds.entrySet()) {
 			String projectCode = entry.getKey();
 			entry.getValue().forEach(sprintId -> {
 				sprintReport.generateSprintReport(projectCode, sprintId);
@@ -59,8 +61,7 @@ public class ClientMain {
 		projectToListOfSprintIds.put("OEXP", Arrays.asList(915L, 916L, 917L, 918L, 919L, 920L));
 	}
 
-	private void setProjectMapComponentValyes() {
-
-		projectToListOfSprintIds.put("VDP", Arrays.asList(907L, 921L, 922L, 923L, 924L, 925L));
+	private void setProjectMapValues2() {
+		listOfComponentIds.put("DMS & Calcs Board 231", jiraService.getSprintDetailsForBoards(225));
 	}
 }
