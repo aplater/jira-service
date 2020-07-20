@@ -32,11 +32,12 @@ public class ClientMain {
 
 	@PostConstruct
 	private void initialize() {
-		generateAndPostAllSprintReports();
+//		generateAndPostAllSprintReports();
+		jiraService.authenticate();
 	}
 
 	private void generateAndPostAllSprintReports() {
-		setProjectMapValues2();
+		setProjectMapValues();
 		for (Map.Entry<String, List<Long>> entry : listOfComponentIds.entrySet()) {
 			String projectCode = entry.getKey();
 			entry.getValue().forEach(sprintId -> {
@@ -52,12 +53,12 @@ public class ClientMain {
 		}
 	}
 
-	private void setProjectMapValues() {
+	private void hardCodeSprintIds() {
 		projectToListOfSprintIds.put("OREF", Arrays.asList(907L, 921L, 922L, 923L, 924L, 925L));
 		projectToListOfSprintIds.put("OEXP", Arrays.asList(915L, 916L, 917L, 918L, 919L, 920L));
 	}
 
-	private void setProjectMapValues2() {
+	private void setProjectMapValues() {
 		listOfComponentIds.put("DMS & Calcs", jiraService.getSprintIdsForGivenBoardId(231L));
 		listOfComponentIds.put("BUX", jiraService.getSprintIdsForGivenBoardId(227L));
 		listOfComponentIds.put("VQL & DE", jiraService.getSprintIdsForGivenBoardId(236L));

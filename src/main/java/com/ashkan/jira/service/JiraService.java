@@ -5,6 +5,9 @@ import com.ashkan.jira.auth.OAuthClient;
 import com.ashkan.jira.model.JiraQuery;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpContent;
 import com.google.api.client.json.Json;
@@ -19,10 +22,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Scanner;
+
 @Component
 public class JiraService {
 	private static final String SEARCH_URI = "/search";
 	private static final String ISSUE_URI = "/issue/";
+	private static final String EDIT_META = "/editmeta/";
 	private static final String AGILE_URI = "rest/agile/1.0/sprint/";
 	private static final String BOARD_URI = "rest/agile/1.0/board";
 	private static final String SEARCH_URI2 = "rest/api/2/search";
@@ -68,6 +74,114 @@ public class JiraService {
 			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
 			jiraClient.sendPostRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
 		}
+	}
+
+	/**
+	 * authenticates with Jira so in the same session, we no longer need
+	 * to authenticate for subsequent requests.
+	 */
+	public void authenticate() {
+		oAuthClient.authenticate();
+	}
+
+	public void getEditIssueMetadata() {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String issueName = jiraClient.getIssueNameFromUser();
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName + EDIT_META;
+			String body = ""; // fix this if needed
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			jiraClient.sendGetRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl);
+		}
+	}
+
+	// for now, it assigns ticket to my profile!
+	// we can change it later to get profile id from input
+	public void assignUser() {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String issueName = jiraClient.getIssueNameFromUser();
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName;
+			String body = createAssignUserBody();
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
+		}
+	}
+
+	private String createAssignUserBody() {
+		JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
+		ObjectNode payload = jsonNodeFactory.objectNode();
+		ObjectNode fields = payload.putObject("fields");
+		ObjectNode assignee = fields.putObject("assignee");
+		assignee.put("id", "5b5b2389ac5ce12cab69305e"); // my profile id!
+		return payload.toString();
+	}
+
+	/**
+	 * - Reads the issue name and comment message from user input
+	 * - posts the given message as a comment on Jira issue
+	 * @return request URL
+	 */
+	public void addComment() {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String issueName = jiraClient.getIssueNameFromUser();
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issueName;
+			String commentMessage = getCommentFromInput();
+			String body = createEditBody(commentMessage);
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
+		}
+	}
+
+	/**
+	 * Given issue name and a message, it posts a new comment
+	 * on the given issue
+	 * @param issue: jira issue name (e.g. VDP-178)
+	 * @param comment: comment to be posted
+	 * @return optional of exception if exists or an empty
+	 * 			optional if there is no exception
+	 */
+	public Optional<Exception> addComment(String issue, String comment) {
+		Optional<Exception> authResult = oAuthClient.authenticate();
+		if (!authResult.isPresent()) {
+			String requestUrl = jiraBaseUrl + ISSUE_URI + issue;
+			String body = createEditBody(comment);
+			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
+			return jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * Reads the issue name from user input
+	 * @return request URL
+	 */
+	public String getCommentFromInput() {
+		System.out.println("Please enter the comment you want to post on the ticket:");
+		Scanner scanner = new Scanner(System.in);
+		return scanner.nextLine();
+	}
+
+	private String createEditBody(String commentMessage) {
+		JsonNodeFactory jsonNodeFactory = JsonNodeFactory.instance;
+		ObjectNode payload = jsonNodeFactory.objectNode();
+		ObjectNode update = payload.putObject("update");
+		ArrayNode comments = update.putArray("comment");
+		ObjectNode add = comments.addObject();
+		ObjectNode commentBody = add.putObject("add");
+		ObjectNode body = commentBody.putObject("body");
+		body.put("version", 1);
+		body.put("type", "doc");
+		ArrayNode contents = body.putArray("content");
+		ObjectNode content = contents.addObject();
+		content.put("type", "paragraph");
+		ArrayNode innerContents = content.putArray("content");
+		ObjectNode innerContent = innerContents.addObject();
+		innerContent.put("type", "text");
+		innerContent.put("text", commentMessage);
+
+		return payload.toString();
 	}
 
 	public void getSprintDetails(Long sprintId) {
