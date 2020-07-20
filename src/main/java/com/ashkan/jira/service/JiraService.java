@@ -139,15 +139,18 @@ public class JiraService {
 	 * on the given issue
 	 * @param issue: jira issue name (e.g. VDP-178)
 	 * @param comment: comment to be posted
+	 * @return optional of exception if exists or an empty
+	 * 			optional if there is no exception
 	 */
-	public void addComment(String issue, String comment) {
+	public Optional<Exception> addComment(String issue, String comment) {
 		Optional<Exception> authResult = oAuthClient.authenticate();
 		if (!authResult.isPresent()) {
 			String requestUrl = jiraBaseUrl + ISSUE_URI + issue;
 			String body = createEditBody(comment);
 			HttpContent httpContent = ByteArrayContent.fromString(Json.MEDIA_TYPE, body);
-			jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
+			return jiraClient.sendPutRequest(oAuthClient.getAccessToken(), oAuthClient.getVerificationCode(), requestUrl, httpContent);
 		}
+		return Optional.empty();
 	}
 
 	/**
